@@ -15,6 +15,11 @@ import java.util.List;
 @Component
 public class VacanciesBot extends TelegramLongPollingBot {
 
+    private final String SHOW_MIDDLE_VACANCIES = "showMiddleVacations";
+    private final String SHOW_SENIOR_VACANCIES = "showSeniorVacations";
+    private final String ASKING_TO_CHOSE_VACANCY = "Please choose vacancy: ";
+    private final String VACANCY_ID_EQUAL = "vacancyId=";
+
     public VacanciesBot() {
         super("6684595751:AAFKHN9Skgys0sPFU9dvcnrb4hrZeZo7Z-M");
     }
@@ -33,6 +38,13 @@ public class VacanciesBot extends TelegramLongPollingBot {
                 } else if (callbackData.startsWith("vacancyId=")) {
                     String id = callbackData.split("=")[1];
                     showVacanciesDescription(id, update);
+                }
+
+                if (SHOW_MIDDLE_VACANCIES.equals(callbackData)) {
+                    showMiddleVacations(update);
+                }
+                if (SHOW_SENIOR_VACANCIES.equals(callbackData)) {
+                    showSeniorVacancies(update);
                 }
             }
         } catch (Exception e) {
@@ -59,8 +71,33 @@ public class VacanciesBot extends TelegramLongPollingBot {
         }
     }
 
+    private void showMiddleVacations(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setText(ASKING_TO_CHOSE_VACANCY);
+        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        sendMessage.setReplyMarkup(getMiddleVacanciesMenu());
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void showSeniorVacancies(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setText(ASKING_TO_CHOSE_VACANCY);
+        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        sendMessage.setReplyMarkup(getSeniorVacancies());
+        try {
+            execute(sendMessage);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private ReplyKeyboard getJuniorVacanciesMenu() {
         List<InlineKeyboardButton> row = new ArrayList<>();
+
         InlineKeyboardButton maVacancy = new InlineKeyboardButton();
         maVacancy.setText("Junior Java developer at MA");
         maVacancy.setCallbackData("vacancyId=1");
@@ -74,6 +111,42 @@ public class VacanciesBot extends TelegramLongPollingBot {
         InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
         keyboard.setKeyboard(List.of(row));
         return keyboard;
+    }
+
+    private ReplyKeyboard getMiddleVacanciesMenu() {
+        List<InlineKeyboardButton> raw = new ArrayList<>();
+
+        InlineKeyboardButton kodilla = new InlineKeyboardButton();
+        kodilla.setText("Mid Java Dev at Kodilla");
+        kodilla.setCallbackData(VACANCY_ID_EQUAL + 3);
+        raw.add(kodilla);
+
+        InlineKeyboardButton lidl = new InlineKeyboardButton();
+        lidl.setText("Mid SQL Dev at Lidl");
+        lidl.setCallbackData(VACANCY_ID_EQUAL + 4);
+        raw.add(lidl);
+
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        keyboardMarkup.setKeyboard(List.of(raw));
+        return keyboardMarkup;
+    }
+
+    private ReplyKeyboard getSeniorVacancies() {
+        List<InlineKeyboardButton> raw = new ArrayList<>();
+
+        InlineKeyboardButton ing = new InlineKeyboardButton();
+        ing.setText("Senior C++ Dev at ING Bank");
+        ing.setCallbackData(VACANCY_ID_EQUAL + 5);
+        raw.add(ing);
+
+        InlineKeyboardButton apple = new InlineKeyboardButton();
+        apple.setText("Senior SWIFT Dev at Apple");
+        apple.setCallbackData(VACANCY_ID_EQUAL + 6);
+        raw.add(apple);
+
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        keyboardMarkup.setKeyboard(List.of(raw));
+        return keyboardMarkup;
     }
 
     private void handleStartCommand(Update update) {
