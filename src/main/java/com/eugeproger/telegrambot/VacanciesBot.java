@@ -35,16 +35,16 @@ public class VacanciesBot extends TelegramLongPollingBot {
 
                 if ("showJuniorVacancies".equals(callbackData)) {
                     showJuniorVacancies(update);
-                } else if (callbackData.startsWith("vacancyId=")) {
-                    String id = callbackData.split("=")[1];
-                    showVacanciesDescription(id, update);
                 }
-
                 if (SHOW_MIDDLE_VACANCIES.equals(callbackData)) {
                     showMiddleVacations(update);
                 }
                 if (SHOW_SENIOR_VACANCIES.equals(callbackData)) {
                     showSeniorVacancies(update);
+                }
+                if (callbackData.startsWith("vacancyId=")) {
+                    String id = callbackData.split("=")[1];
+                    showVacanciesDescription(id, update);
                 }
             }
         } catch (Exception e) {
