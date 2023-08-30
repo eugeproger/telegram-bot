@@ -1,5 +1,8 @@
 package com.eugeproger.telegrambot;
 
+import com.eugeproger.telegrambot.dto.VacancyDto;
+import com.eugeproger.telegrambot.service.VacancyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -14,7 +17,8 @@ import java.util.List;
 
 @Component
 public class VacanciesBot extends TelegramLongPollingBot {
-
+    @Autowired
+    private VacancyService vacancyService;
     private final String SHOW_JUNIOR_VACANCIES = "showJuniorVacancies";
     private final String SHOW_MIDDLE_VACANCIES = "showMiddleVacations";
     private final String SHOW_SENIOR_VACANCIES = "showSeniorVacations";
@@ -108,21 +112,19 @@ public class VacanciesBot extends TelegramLongPollingBot {
     }
 
     private ReplyKeyboard getJuniorVacanciesMenu() {
-        List<InlineKeyboardButton> row = new ArrayList<>();
+        List<InlineKeyboardButton> raw = new ArrayList<>();
+        List<VacancyDto> vacancies = vacancyService.getJuniorVacancies();
 
-        InlineKeyboardButton maVacancy = new InlineKeyboardButton();
-        maVacancy.setText("Junior Java developer at MA");
-        maVacancy.setCallbackData(VACANCY_ID_EQUAL+"1");
-        row.add(maVacancy);
+        for (VacancyDto vacancy : vacancies) {
+            InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
+            vacancyButton.setText(vacancy.getTitle());
+            vacancyButton.setCallbackData(VACANCY_ID_EQUAL+vacancy.getId());
+            raw.add(vacancyButton);
+        }
 
-        InlineKeyboardButton googleVacancy = new InlineKeyboardButton();
-        googleVacancy.setText("Junior Dev at Google");
-        googleVacancy.setCallbackData(VACANCY_ID_EQUAL+"2");
-        row.add(googleVacancy);
-
-        InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup();
-        keyboard.setKeyboard(List.of(row));
-        return keyboard;
+        InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+        keyboardMarkup.setKeyboard(List.of(raw));
+        return keyboardMarkup;
     }
 
     private void showMiddleVacations(Update update) {
@@ -188,7 +190,9 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private void showVacanciesDescription(String id, Update update) throws TelegramApiException {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        sendMessage.setText("Vacancy description for vacancy with id = " + id);
+        VacancyDto vacancy = vacancyService.get(id);
+        String description = vacancy.getShortDescription();
+        sendMessage.setText(description);
         execute(sendMessage);
     }
 }
