@@ -24,6 +24,8 @@ public class VacanciesBot extends TelegramLongPollingBot {
     private final String SHOW_SENIOR_VACANCIES = "showSeniorVacations";
     private final String ASKING_TO_CHOSE_VACANCY = "Please choose vacancy: ";
     private final String VACANCY_ID_EQUAL = "vacancyId=";
+    private final String BACK_TO_VACANCIES = "backToVacancies";
+    private final String BACK_TO_START_MENU = "backToStartMenu";
 
     public VacanciesBot() {
         super("6684595751:AAFKHN9Skgys0sPFU9dvcnrb4hrZeZo7Z-M");
@@ -50,6 +52,12 @@ public class VacanciesBot extends TelegramLongPollingBot {
                 if (callbackData.startsWith(VACANCY_ID_EQUAL)) {
                     String id = callbackData.split("=")[1];
                     showVacanciesDescription(id, update);
+                }
+                if (BACK_TO_VACANCIES.equals(callbackData)) {
+                    // add handle
+                }
+                if (BACK_TO_START_MENU.equals(callbackData)) {
+                    // add handle
                 }
             }
         } catch (Exception e) {
@@ -193,6 +201,22 @@ public class VacanciesBot extends TelegramLongPollingBot {
         VacancyDto vacancy = vacancyService.get(id);
         String description = vacancy.getShortDescription();
         sendMessage.setText(description);
+        sendMessage.setReplyMarkup(getBackToVacanciesMenu());
         execute(sendMessage);
+    }
+
+    private ReplyKeyboard getBackToVacanciesMenu() {
+        List<InlineKeyboardButton> raw = new ArrayList<>();
+        InlineKeyboardButton backToVacanciesButton = new InlineKeyboardButton();
+        backToVacanciesButton.setText("Back to vacancies");
+        backToVacanciesButton.setCallbackData(BACK_TO_VACANCIES);
+        raw.add(backToVacanciesButton);
+
+        InlineKeyboardButton backToStartMenuButton = new InlineKeyboardButton();
+        backToStartMenuButton.setText("Back to start menu");
+        backToStartMenuButton.setCallbackData(BACK_TO_START_MENU);
+        raw.add(backToVacanciesButton);
+
+        return new InlineKeyboardMarkup(List.of(raw));
     }
 }
