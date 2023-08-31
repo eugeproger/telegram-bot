@@ -13,7 +13,6 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
-import javax.management.Descriptor;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -227,15 +226,21 @@ public class VacanciesBot extends TelegramLongPollingBot {
 
     private ReplyKeyboard getBackToVacanciesMenu() {
         List<InlineKeyboardButton> raw = new ArrayList<>();
-        InlineKeyboardButton backToVacanciesButton = new InlineKeyboardButton();
-        backToVacanciesButton.setText("Back to vacancies");
-        backToVacanciesButton.setCallbackData(BACK_TO_VACANCIES);
-        raw.add(backToVacanciesButton);
 
         InlineKeyboardButton backToStartMenuButton = new InlineKeyboardButton();
         backToStartMenuButton.setText("Back to start menu");
         backToStartMenuButton.setCallbackData(BACK_TO_START_MENU);
         raw.add(backToStartMenuButton);
+
+        InlineKeyboardButton backToVacanciesButton = new InlineKeyboardButton();
+        backToVacanciesButton.setText("Back to vacancies");
+        backToVacanciesButton.setCallbackData(BACK_TO_VACANCIES);
+        raw.add(backToVacanciesButton);
+
+        InlineKeyboardButton getChatGptButton = new InlineKeyboardButton();
+        getChatGptButton.setText("Get cover letter");
+        getChatGptButton.setUrl("https://chat.openai.com/");
+        raw.add(getChatGptButton);
 
         return new InlineKeyboardMarkup(List.of(raw));
     }
