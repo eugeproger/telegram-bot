@@ -5,6 +5,7 @@ import com.eugeproger.telegrambot.service.VacancyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.ParseMode;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -56,10 +57,6 @@ public class VacanciesBot extends TelegramLongPollingBot {
                 if (callbackData.startsWith(VACANCY_ID_EQUAL)) {
                     String id = callbackData.split("=")[1];
                     showVacanciesDescription(id, update);
-                    showLongDescription(id, update);
-                    showCompany(id, update);
-                    showSalary(id, update);
-                    showLink(id, update);
                 }
                 if (BACK_TO_VACANCIES.equals(callbackData)) {
                     handleBackToVacanciesCommand(update);
@@ -158,27 +155,22 @@ public class VacanciesBot extends TelegramLongPollingBot {
     }
 
     private ReplyKeyboard getJuniorVacanciesMenu() {
-        List<InlineKeyboardButton> raw = new ArrayList<>();
         List<VacancyDto> vacancies = vacancyService.getJuniorVacancies();
-
-        return getReplyKeyboard(raw, vacancies);
+        return getReplyKeyboard(vacancies);
     }
 
     private ReplyKeyboard getMiddleVacanciesMenu() {
-        List<InlineKeyboardButton> raw = new ArrayList<>();
         List<VacancyDto> vacancies = vacancyService.getMiddleVacancies();
-
-        return getReplyKeyboard(raw, vacancies);
+        return getReplyKeyboard(vacancies);
     }
 
     private ReplyKeyboard getSeniorVacancies() {
-        List<InlineKeyboardButton> raw = new ArrayList<>();
         List<VacancyDto> vacancies = vacancyService.getSeniorVacancies();
-
-        return getReplyKeyboard(raw, vacancies);
+        return getReplyKeyboard(vacancies);
     }
 
-    private ReplyKeyboard getReplyKeyboard(List<InlineKeyboardButton> raw, List<VacancyDto> vacancies) {
+    private ReplyKeyboard getReplyKeyboard(List<VacancyDto> vacancies) {
+        List<InlineKeyboardButton> raw = new ArrayList<>();
         for (VacancyDto vacancy: vacancies) {
             InlineKeyboardButton vacancyButton = new InlineKeyboardButton();
             vacancyButton.setText(vacancy.getTitle());
@@ -191,48 +183,46 @@ public class VacanciesBot extends TelegramLongPollingBot {
     }
 
     private void showVacanciesDescription(String id, Update update) throws TelegramApiException {
+        VacancyDto vacancyDto = vacancyService.get(id);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        VacancyDto vacancy = vacancyService.get(id);
-        String description = vacancy.getShortDescription();
-        sendMessage.setText(description);
-        execute(sendMessage);
-    }
-    private void showLongDescription(String id, Update update) throws TelegramApiException {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        VacancyDto vacancy = vacancyService.get(id);
-        String description = vacancy.getLongDescription();
-        sendMessage.setText(description);
-        execute(sendMessage);
-    }
-
-    private void showCompany(String id, Update update) throws TelegramApiException {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        VacancyDto vacancy = vacancyService.get(id);
-        String company = vacancy.getCompany();
-        sendMessage.setText("Company: " + company);
-        execute(sendMessage);
-    }
-
-    private void showSalary(String id, Update update) throws TelegramApiException {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        VacancyDto vacancy = vacancyService.get(id);
-        String salary = vacancy.getSalary();
-        sendMessage.setText("Salary: " + salary);
-        execute(sendMessage);
-    }
-
-    private void showLink(String id, Update update) throws TelegramApiException {
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(update.getCallbackQuery().getMessage().getChatId());
-        VacancyDto vacancy = vacancyService.get(id);
-        String link = vacancy.getLink();
-        sendMessage.setText(link);
+        String vacancyInfo = """
+                *Title:* %s
+                *Company:* %s
+                *Short Description:* %s
+                *Description:* %s
+                *Salary:* %s
+                *Link:* [%s](%s)
+                """.formatted(
+                        escapeMarkdownReservedChars(vacancyDto.getTitle()),
+                escapeMarkdownReservedChars(vacancyDto.getCompany()),
+                escapeMarkdownReservedChars(vacancyDto.getShortDescription()),
+                escapeMarkdownReservedChars(vacancyDto.getLongDescription()),
+                vacancyDto.getSalary().isBlank() ? "Not specified" : escapeMarkdownReservedChars(vacancyDto.getSalary()),
+                "Click here for more details",
+                escapeMarkdownReservedChars(vacancyDto.getLink())
+        );
+        sendMessage.setText(vacancyInfo);
+        sendMessage.setParseMode(ParseMode.MARKDOWNV2);
         sendMessage.setReplyMarkup(getBackToVacanciesMenu());
         execute(sendMessage);
+    }
+
+    private String escapeMarkdownReservedChars(String text) {
+        return text.replace("-", "\\-")
+                .replace("_", "\\_")
+                .replace("*", "\\*")
+                .replace("[", "\\[")
+                .replace("]", "\\]")
+                .replace("(", "\\(")
+                .replace(")", "\\)")
+                .replace("~", "\\~")
+                .replace("`", "\\`")
+                .replace(">", "\\>")
+                .replace("#", "\\#")
+                .replace("+", "\\+")
+                .replace(".", "\\.")
+                .replace("!", "\\!");
     }
 
     private ReplyKeyboard getBackToVacanciesMenu() {

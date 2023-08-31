@@ -38,7 +38,8 @@ public class VacancyService {
 
     public List<VacancyDto> getSeniorVacancies() {
         return vacancies.values().stream()
-                .filter(v -> v.getTitle().toLowerCase().contains("senior"))
+                .filter(vacancy -> !vacancy.getTitle().toLowerCase().contains("junior"))
+                .filter(vacancy -> !vacancy.getTitle().toLowerCase().contains("middle"))
                 .toList();
     }
 
